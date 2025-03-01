@@ -3,34 +3,47 @@
 
 import { sql } from "drizzle-orm";
 import {
-  index,
-  integer,
   pgTableCreator,
+  pgEnum,
+  integer,
   timestamp,
   varchar,
+  boolean,
 } from "drizzle-orm/pg-core";
 
-/**
- * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
- * database instance for multiple projects.
- *
- * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
- */
+import { PlayerRole } from "@/lib/types";
+
+export function enumToPgEnum<T extends Record<string, any>>(
+  myEnum: T,
+): [T[keyof T], ...T[keyof T][]] {
+  return Object.values(myEnum).map((value: any) => `${value}`) as any;
+}
+
 export const createTable = pgTableCreator((name) => `cornhacks-2025_${name}`);
 
-export const posts = createTable(
-  "post",
-  {
-    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
-    name: varchar("name", { length: 256 }),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
-      () => new Date()
-    ),
-  },
-  (example) => ({
-    nameIndex: index("name_idx").on(example.name),
-  })
-);
+export const games = createTable("game", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  status: varchar("status", { length: 50 }).notNull(),
+  currentPhase: varchar("current_phase", { length: 50 }).notNull(),
+  startTime: timestamp("start_time", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  endTime: timestamp("end_time", { withTimezone: true }),
+});
+
+export const playerRoleEnum = pgEnum("role", enumToPgEnum(PlayerRole));
+
+export const players = createTable("player", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  name: varchar("name", { length: 256 }).notNull(),
+  role: playerRoleEnum("role").notNull(),
+  game_id: integer("game_id")
+    .notNull()
+    .references(() => games.id),
+
+  isAlive: boolean("is_alive").notNull().default(true),
+  isAi: boolean("is_ai").notNull().default(false),
+  lastAction: timestamp("last_action", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+});
