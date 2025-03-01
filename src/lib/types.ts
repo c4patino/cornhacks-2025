@@ -12,3 +12,9 @@ export enum PlayerRole {
 }
 
 export type PlayerRoleType = keyof typeof PlayerRole;
+
+export type Message = {
+  sender: number;
+  timestamp: Date;
+  text: string;
+};
