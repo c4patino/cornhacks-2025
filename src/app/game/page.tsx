@@ -1,7 +1,34 @@
+'use client'
+
 import { Button } from "@/components/ui/button";
 import { roles } from "./descriptions";
+import { prompts } from "./prompts";
+import { useState } from "react";
 
-export default async function Game() {
+export default function Game() {
+
+  const [actionId, setActionId] = useState(0);
+
+  const samplePlayers = ["Player One", "Player Two", "Player Thre"];
+
+  const PlayerList = (players: string[], header: string) => {
+    return (
+      <div className="w-1/4 max-w-[300px] h-[400px] bg-gray-900 p-4 rounded-lg shadow-lg overflow-y-auto">
+        <h2 className="text-lg font-bold text-white mb-2">{header}</h2>
+        <div className="flex flex-col gap-2">
+          {players.map((player, index) => (
+            <button
+              key={index}
+              className="px-4 py-2 bg-blue-700 text-white rounded-md hover:bg-blue-800 transition"
+            >
+              {player}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return(
     <div className="flex h-screen p-4 bg-gray-800">
       <div className="w-1/2 bg-gray-900 text-white p-6 border-r border-gray-700 flex flex-col rounded-2xl overflow-y-auto">
@@ -19,7 +46,7 @@ export default async function Game() {
           </div>
         </div>
       </div>
-      
+
       {/* Right half of page */}
       <div className="w-1/2 h-[100%] bg-gray-800 flex flex-col justify-between">
         <div className="pl-8 pr-8 pb-8 h-[40%]">
@@ -31,7 +58,16 @@ export default async function Game() {
         <div className="pl-8 pr-8 pt-8 h-[60%]">
           <div className="flex-1 h-[100%] bg-gray-900 text-white p-4 rounded-2xl shadow-lg">
             <h2 className="text-xl font-bold mb-2">Randomly Generated Name</h2>
-            <p>Add task here</p>
+            <p className="whitespace-pre-line">{prompts[actionId]!.prompt}</p>
+            <div className="flex flex-row justify-evenly">
+              {actionId == 0 &&
+              <div className="flex flex-row justify-center p-4">
+                <Button variant="default" onClick={() => setActionId(1)}>Continue</Button>
+              </div>
+              }
+              {prompts[actionId]!.requires_players && PlayerList(samplePlayers, "Players")}
+              {prompts[actionId]!.requires_unused && PlayerList(['Card One', 'Card Two', 'Card Three'], "Unused Roles")}
+            </div>
           </div>
         </div>
       </div>
