@@ -29,7 +29,7 @@ export default async function Game() {
         </div>
         <div className="pl-8 pr-8 pt-8 h-[60%]">
           <div className="flex-1 h-[100%] bg-gray-900 text-white p-4 rounded-2xl shadow-lg">
-            <h2 className="text-xl font-bold mb-2">Job</h2>
+            <h2 className="text-xl font-bold mb-2">Randomly Generated Name</h2>
             <p>Add task here</p>
           </div>
         </div>

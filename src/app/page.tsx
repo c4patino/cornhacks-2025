@@ -1,9 +1,15 @@
+"use client"
 
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-export default async function StartPage() {
+
+export default function StartPage() {
+  const router = useRouter();
+
+  const makeLobby = () => {console.log("Filler Text")}
 
   return (
     <div className="flex flex-col items-center justify-evenly h-screen bg-gradient-to-b from-blue-800 to-blue-950">
@@ -17,12 +23,14 @@ export default async function StartPage() {
             className="px-4 py-2 text-white bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <div className="px-4 py-1">
-            <Button variant="default">Join</Button>
+            <Link href="./create">
+              <Button variant="default">Join</Button>
+            </Link>
           </div>
         </div>
         <div className="pt-6">
           <div className="ml-2 px-4 py-2">
-            <Button variant="default">Start a room</Button>
+            <Button variant="default" onClick={makeLobby}>Start a room</Button>
           </div>
         </div>
       </div>
