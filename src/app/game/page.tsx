@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { roles } from "./descriptions";
 
 export default async function Game() {
   return(
@@ -23,8 +24,8 @@ export default async function Game() {
       <div className="w-1/2 h-[100%] bg-gray-800 flex flex-col justify-between">
         <div className="pl-8 pr-8 pb-8 h-[40%]">
           <div className="flex-1 h-[100%] bg-gray-900 text-white p-4 rounded-2xl shadow-lg">
-            <h2 className="text-xl font-bold mb-2">Role</h2>
-            <p>Add role description here</p>
+            <h2 className="text-xl font-bold mb-2">{roles[0]!.display_name}</h2>
+            <p className="whitespace-pre-line">{roles[0]!.description}</p>
           </div>
         </div>
         <div className="pl-8 pr-8 pt-8 h-[60%]">
