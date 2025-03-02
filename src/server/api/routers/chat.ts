@@ -14,6 +14,7 @@ export const chatRouter = createTRPCRouter({
       signal: opts.signal,
     })) {
       const message = data as Message;
+      console.log(message);
       yield message;
     }
   }),

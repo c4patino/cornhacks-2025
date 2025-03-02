@@ -39,3 +39,9 @@ export const GameStateSchema = z.object({
 });
 
 export type GameState = z.infer<typeof GameStateSchema>;
+
+export enum GameStatus {
+  JOINING = "joining",
+  IN_PROGRESS = "in_progress",
+  COMPLETE = "complete",
+}

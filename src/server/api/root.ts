@@ -4,7 +4,7 @@ import {
   publicProcedure,
 } from "@/server/api/trpc";
 
-import { lobbyRouter } from "@/server/api/routers/lobby";
+import { gameRouter } from "@/server/api/routers/game";
 import { chatRouter } from "@/server/api/routers/chat";
 import { gamestateRouter } from "@/server/api/routers/gamestate";
 
@@ -15,8 +15,8 @@ import { gamestateRouter } from "@/server/api/routers/gamestate";
  */
 export const appRouter = createTRPCRouter({
   healthcheck: publicProcedure.query(() => "ok"),
-  lobby: lobbyRouter,
   gamestate: gamestateRouter,
+  game: gameRouter,
   chat: chatRouter,
 });
 

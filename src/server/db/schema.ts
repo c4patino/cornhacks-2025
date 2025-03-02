@@ -11,7 +11,7 @@ import {
   boolean,
 } from "drizzle-orm/pg-core";
 
-import { PlayerRole } from "@/lib/types";
+import { PlayerRole, GameStatus } from "@/lib/types";
 
 export function enumToPgEnum<T extends Record<string, any>>(
   myEnum: T,
@@ -21,10 +21,14 @@ export function enumToPgEnum<T extends Record<string, any>>(
 
 export const createTable = pgTableCreator((name) => `cornhacks-2025_${name}`);
 
+export const gameStatusEnum = pgEnum("status", enumToPgEnum(GameStatus));
+
 export const games = createTable("game", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
-  status: varchar("status", { length: 50 }).notNull(),
-  currentPhase: varchar("current_phase", { length: 50 }).notNull(),
+  status: varchar("status", { length: 50 })
+    .default(GameStatus.JOINING)
+    .notNull(),
+  currentPhase: varchar("current_phase", { length: 50 }),
   startTime: timestamp("start_time", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
@@ -36,7 +40,7 @@ export const playerRoleEnum = pgEnum("role", enumToPgEnum(PlayerRole));
 export const players = createTable("player", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
   name: varchar("name", { length: 256 }).notNull(),
-  role: playerRoleEnum("role").notNull(),
+  role: playerRoleEnum("role"),
   game_id: integer("game_id")
     .notNull()
     .references(() => games.id),
