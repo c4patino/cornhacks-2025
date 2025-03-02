@@ -1,11 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useEffect, useState } from "react";
-
-import { Message } from "@/lib/types";
-
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -17,8 +11,11 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-
-const CLIENT_ID = 69;
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
+import { Message } from "@/lib/types";
+import { api } from "@/trpc/react";
 
 const FormSchema = z.object({
   text: z.string().max(200, {
@@ -27,72 +24,39 @@ const FormSchema = z.object({
 });
 
 export default function Game() {
-  const [ws, setWs] = useState<WebSocket | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  const { mutate: send } = api.chat.send.useMutation();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
+    defaultValues: { text: "" },
   });
 
   function onSubmit(data: z.infer<typeof FormSchema>) {
-    if (ws) {
-      const messageToSend: Message = {
-        sender: CLIENT_ID,
-        timestamp: new Date(),
-        text: data.text,
-      };
-      console.log("Sending to server:", messageToSend);
-
-      ws.send(JSON.stringify(messageToSend));
-    }
+    send({
+      message: data.text,
+      sender: 0,
+      timestamp: new Date(),
+    });
   }
 
-  useEffect(() => {
-    const socket = new WebSocket("ws://localhost:8080");
-
-    socket.onopen = () => {
-      console.log(`Connected to WebSocket Server`);
-
-      const initialMessage = {
-        sender: CLIENT_ID,
-        timestamp: new Date(),
-        message: `Hello from Client ${CLIENT_ID}`,
-      };
-
-      socket.send(JSON.stringify(initialMessage));
-    };
-
-    socket.onmessage = (event) => {
-      console.log(event);
-      const message: Message = JSON.parse(event.data);
-      console.log("Received from server:", message);
-
-      // Add the received message to the state
-      setMessages((prevMessages) => [...prevMessages, message]);
-    };
-
-    socket.onerror = (error) => {
-      console.error("WebSocket error:", error);
-    };
-
-    socket.onclose = () => {
-      console.log(`Connection for ${CLIENT_ID} closed`);
-    };
-
-    setWs(socket);
-
-    return () => {
-      socket.close();
-    };
-  }, [CLIENT_ID]);
+  const result = api.chat.get.useSubscription(undefined, {
+    onData(data: any) {
+      setMessages([...messages, data.json]);
+    },
+    onError(err) {
+      console.error(err);
+    },
+  });
 
   return (
     <div className="flex h-screen bg-gray-800 p-4">
       <div className="flex w-1/2 flex-col overflow-y-auto rounded-2xl border-r border-gray-700 bg-gray-900 p-6 text-white">
         <h2 className="mb-4 text-xl font-bold">The Final Transmission</h2>
+        {result.status}
         <div className="h-[85%] flex-1 flex-col justify-end">
           {messages.map((message) => (
-            <p>{message.text}</p>
+            <p>{message.message}</p>
           ))}
         </div>
         <div className="mt-4 flex">

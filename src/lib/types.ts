@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 export enum PlayerRole {
   FREE_AGENT = "free_agent",
   CORRUPT_DEVELOPER = "corrupt_developer",
@@ -13,8 +15,10 @@ export enum PlayerRole {
 
 export type PlayerRoleType = keyof typeof PlayerRole;
 
-export type Message = {
-  sender: number;
-  timestamp: Date;
-  text: string;
-};
+export const MessageSchema = z.object({
+  sender: z.number(),
+  timestamp: z.date(),
+  message: z.string(),
+});
+
+export type Message = z.infer<typeof MessageSchema>;
