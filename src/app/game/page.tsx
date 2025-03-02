@@ -203,7 +203,7 @@ export default function Game() {
       <div className="order-2 flex w-full flex-col rounded-2xl border-r border-gray-700 bg-gray-900 p-6 text-white md:order-1 md:w-1/2 md:overflow-y-auto">
         <div className="flex w-full flex-row justify-between">
           <h2 className="mb-4 text-xl font-bold">
-            The Final Transmission Chat: {gamestate && gamestate?.currentPhase}
+            The Final Transmission Chat
           </h2>
           {gamestate == GameStates.CHATTING && <Timer duration={60} />}
         </div>

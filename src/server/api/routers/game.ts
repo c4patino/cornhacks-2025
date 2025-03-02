@@ -59,6 +59,27 @@ export const gameRouter = createTRPCRouter({
     }
   }),
 
+  isGameStarted: publicProcedure
+    .input(z.number())
+    .subscription(async function* ({ ctx, input, signal }) {
+      const game = await ctx.db.query.games
+        .findFirst({
+          where: (game, { eq }) => eq(game.id, input),
+        })
+        .execute();
+
+      if (!game) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message:
+            "That game was not found, please check your join code and try again.",
+        });
+      }
+      for await (const _ of on(ee, "start", { signal })) {
+        yield true;
+      }
+    }),
+
   join: publicProcedure.input(z.number()).mutation(async ({ input, ctx }) => {
     const game = await ctx.db.query.games
       .findFirst({
@@ -135,17 +156,15 @@ export const gameRouter = createTRPCRouter({
 
       const availableRoles: PlayerRole[] = Object.values(PlayerRole);
 
-      if (availableRoles.length < players.length) {
+      if (availableRoles.length < playerList.length) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Not enough roles for the number of players.",
         });
       }
 
-      // Shuffle roles and assign a subset matching the number of players
-      const assignedRoles = shuffle(availableRoles).slice(0, players.length);
+      const assignedRoles = shuffle(availableRoles).slice(0, playerList.length);
 
-      // Assign roles without replacement
       await Promise.all(
         playerList.map((player, index) =>
           ctx.db
@@ -154,5 +173,7 @@ export const gameRouter = createTRPCRouter({
             .where(eq(players.id, player.id)),
         ),
       );
+
+      ee.emit("start");
     }),
 });

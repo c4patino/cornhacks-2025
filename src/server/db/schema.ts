@@ -7,18 +7,20 @@ import {
   varchar,
   boolean,
   foreignKey,
-  AnyPgColumn,
-  ColumnsWithTable,
 } from "drizzle-orm/pg-core";
-import { z } from "zod";
-import { createSelectSchema, createInsertSchema } from "drizzle-zod";
 
 import { PlayerRole, GameStatus, GameStates } from "@/lib/types";
 
-export function enumToPgEnum<T extends Record<string, any>>(
+export function enumToPgEnum<T extends Record<string, string>>(
   myEnum: T,
-): [T[keyof T], ...T[keyof T][]] {
-  return Object.values(myEnum).map((value: any) => `${value}`) as any;
+): readonly [string, ...string[]] {
+  const values = Object.values(myEnum) as string[];
+
+  if (values.length === 0) {
+    throw new Error("Enum is empty, canno convert to PgEnum.");
+  }
+
+  return [values[0]!, ...values.slice(1)] as const;
 }
 
 export const createTable = pgTableCreator((name) => `cornhacks-2025_${name}`);

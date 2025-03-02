@@ -81,6 +81,6 @@ export async function alterGameState(gameId: number, state: GameStates) {
   }
 }
 
-export function findRoleId(value: string) {
+export async function findRoleId(value: string) {
   return Object.values(PlayerRole).indexOf(value as PlayerRole);
 }

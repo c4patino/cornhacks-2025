@@ -148,7 +148,7 @@ export const gamestateRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       const player: any = await ctx.db.query.players
         .findFirst({
-          where: (role, { eq }) => eq(player.id, input.id),
+          where: (players, { eq }) => eq(players.id, input.id),
         })
         .execute();
 
@@ -187,7 +187,7 @@ export const gamestateRouter = createTRPCRouter({
 
       await ctx.db
         .update(players)
-        .set({ is_alive: false })
+        .set({ isAlive: false })
         .where(eq(player.id, input));
 
       ee.emit("game_state");
