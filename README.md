@@ -13,5 +13,6 @@ This application is entirely web-based and works on cross-platform.
 - Trpc
 - eslint
 - Websockets
+- Tailscale
 
 The Final Transmission was created in less than a day and remember... the AI is always watching.
