@@ -50,7 +50,10 @@ export function TRPCReactProvider(props: { children: React.ReactNode }) {
       links: [
         splitLink({
           condition: (op) => op.type === "subscription",
-          true: unstable_httpSubscriptionLink({ url: getUrl() } as any),
+          true: unstable_httpSubscriptionLink({
+            transformer: SuperJSON,
+            url: getUrl(),
+          }),
           false: unstable_httpBatchStreamLink({
             transformer: SuperJSON,
             url: getUrl(),
