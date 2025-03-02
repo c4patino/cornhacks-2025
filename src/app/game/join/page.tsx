@@ -37,7 +37,7 @@ export default function JoinPage() {
   });
 
   const handleStart = () => {
-    gameStart.mutate({ gameId, playerId: 21 });
+    gameStart.mutate({ gameId, playerId: 1 });
   };
 
   return (

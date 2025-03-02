@@ -39,8 +39,6 @@ export const gamestateRouter = createTRPCRouter({
         })
         .execute();
 
-      console.log(game);
-
       if (!game) {
         throw new TRPCError({
           code: "NOT_FOUND",
@@ -83,5 +81,115 @@ export const gamestateRouter = createTRPCRouter({
 
         yield game;
       }
+    }),
+
+  getRole: publicProcedure.input(z.number()).query(async function* ({
+    input,
+    ctx,
+    signal,
+  }) {
+    const player = await ctx.db.query.players
+      .findFirst({
+        where: (player, { eq }) => eq(player.id, input),
+      })
+      .execute();
+
+    if (!player) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message:
+          "That player was not found, please check your join code and try again.",
+      });
+    }
+
+    for await (const _ of on(ee, "game_state", { signal })) {
+      const player = await ctx.db.query.players
+        .findFirst({
+          where: (player, { eq }) => eq(player.id, input),
+        })
+        .execute();
+
+      yield player;
+    }
+  }),
+
+  getPlayerByRole: publicProcedure.input(z.string()).query(async function* ({
+    input,
+    ctx,
+    signal,
+  }) {
+    const player = await ctx.db.query.players
+      .findFirst({
+        where: (player, { eq }) => eq(player.role, input),
+      })
+      .execute();
+
+    if (!player) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message:
+          "That player was not found, please check your join code and try again.",
+      });
+    }
+
+    for await (const _ of on(ee, "game_state", { signal })) {
+      const player = await ctx.db.query.players
+        .findMany({
+          where: (player, { eq }) => eq(player.role, input),
+        })
+        .execute();
+
+      yield player;
+    }
+  }),
+
+  changeRole: publicProcedure
+    .input(z.object({ role: z.string(), id: z.number() }))
+    .mutation(async ({ input, ctx }) => {
+      const player: any = await ctx.db.query.players
+        .findFirst({
+          where: (role, { eq }) => eq(player.id, input.id),
+        })
+        .execute();
+
+      if (!player) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message:
+            "That player was not found, please check your join code and try again.",
+        });
+      }
+
+      await ctx.db
+        .update(players)
+        .set({ role: input.role })
+        .where(eq(player.id, input.id));
+
+      ee.emit("game_state");
+    }),
+
+  removePlayer: publicProcedure
+    .input(z.number())
+    .mutation(async ({ input, ctx }) => {
+      const player: any = await ctx.db.query.players
+        .findFirst({
+          where: (player, { eq }) => eq(player.id, input),
+        })
+        .execute();
+
+      if (!player) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message:
+            "That player was not found, please check your join code and try again.",
+        });
+      }
+
+      await ctx.db
+        .update(players)
+        .set({ is_alive: false })
+        .where(eq(player.id, input));
+
+      ee.emit("game_state");
     }),
 });
