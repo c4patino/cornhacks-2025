@@ -26,7 +26,7 @@ export default function JoinPage() {
     }
   }, [gameId, router]);
 
-  const subscription = api.game.playersList.useSubscription(gameId, {
+  api.game.playersList.useSubscription(gameId, {
     onData(data: any) {
       console.log(data);
       setPlayerList(data);

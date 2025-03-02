@@ -8,6 +8,7 @@ import { db } from "@/server/db";
 import { games, players } from "@/server/db/schema";
 import { ee } from "@/trpc/shared";
 import { GameStatus, PlayerRole } from "@/lib/types";
+import { shuffle } from "@/lib/utils";
 
 export const gameRouter = createTRPCRouter({
   create: publicProcedure.mutation(async ({ input }) => {
@@ -98,5 +99,40 @@ export const gameRouter = createTRPCRouter({
         .update(games)
         .set({ status: GameStatus.IN_PROGRESS })
         .where(eq(games.id, game.id));
+
+      const playerList = await ctx.db.query.players
+        .findMany({
+          where: (player, { eq }) => eq(player.gameId, game.id),
+        })
+        .execute();
+
+      if (playerList.length == 0) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "No players found in this game",
+        });
+      }
+
+      const availableRoles: PlayerRole[] = Object.values(PlayerRole);
+
+      if (availableRoles.length < players.length) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Not enough roles for the number of players.",
+        });
+      }
+
+      // Shuffle roles and assign a subset matching the number of players
+      const assignedRoles = shuffle(availableRoles).slice(0, players.length);
+
+      // Assign roles without replacement
+      await Promise.all(
+        playerList.map((player, index) =>
+          ctx.db
+            .update(players)
+            .set({ role: assignedRoles[index] })
+            .where(eq(players.id, player.id)),
+        ),
+      );
     }),
 });
