@@ -7,9 +7,16 @@ import { GameStates } from "@/lib/types";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { FreeAgentAction, InfluencerAction, DetectiveAction, 
-    VirusAction, HackerAction, SkepticAction, CraziedAction, 
-    SharedFateAction} from "./roleactions";
+import {
+  FreeAgentAction,
+  InfluencerAction,
+  DetectiveAction,
+  VirusAction,
+  HackerAction,
+  SkepticAction,
+  CraziedAction,
+  SharedFateAction,
+} from "./roleactions";
 
 import {
   Form,
@@ -25,16 +32,7 @@ import { Message } from "@/lib/types";
 import { api } from "@/trpc/react";
 import { useGlobalState } from "@/app/_components/context";
 import { PlayerRole } from "@/lib/types";
-
-interface Player {
-  id: number;
-  name: string;
-  role: PlayerRole | null;
-  gameId: number;
-  isAlive: boolean;
-  isAi: boolean;
-  lastAction: Date | null;
-}
+import { type TPlayer } from "@/server/db/schema";
 
 const FormSchema = z.object({
   text: z.string().max(200, {
@@ -51,7 +49,9 @@ export default function Game() {
 
   const { gameData, playerData } = useGlobalState();
 
-  const { data: players } = api.gamestate.getLobbyPlayers.useQuery(gameData.id ?? 0);
+  const { data: players } = api.gamestate.getLobbyPlayers.useQuery(
+    gameData.id ?? 0,
+  );
   const [gamestate, setGameState] = useState<{} | undefined>(undefined);
   const [actionId, setActionId] = useState(0);
 
@@ -70,7 +70,6 @@ export default function Game() {
     resolver: zodResolver(FormSchema),
     defaultValues: { text: "" },
   });
-
 
   function onSubmit(data: z.infer<typeof FormSchema>) {
     send({
@@ -105,7 +104,7 @@ export default function Game() {
   }, [recState]);
 
   function findRoleId() {
-    switch (role?.role ?? "illiterate") {
+    switch (role) {
       case "free_agent":
         return Number(0);
       case "influencer":
@@ -133,7 +132,7 @@ export default function Game() {
   // to activate changes
   const handleRoleAction = (selectedId: number) => {
     const playerId = playerData.id ?? 0;
-    switch (role!.role) {
+    switch (role) {
       case "free_agent":
         FreeAgentAction(playerId, selectedId);
         break;
@@ -141,8 +140,8 @@ export default function Game() {
         InfluencerAction();
         break;
       case "detective":
-        const player = DetectiveAction(selectedId);
-        extraText = `${player!.name} has the ${player!.role} role.`
+        const playerRole = DetectiveAction(selectedId);
+        extraText = `Has the ${playerRole} role.`;
         console.log(extraText);
         extraInfo = true;
         break;
@@ -154,7 +153,7 @@ export default function Game() {
         break;
       case "skeptic":
         const selfRole = SkepticAction(playerId);
-        extraText = `You have the ${selfRole} role.`
+        extraText = `You have the ${selfRole} role.`;
         extraInfo = true;
         break;
       case "crazied":
@@ -172,9 +171,15 @@ export default function Game() {
 
   const handleVoteAction = () => {
     setActionId(2);
-  }
+  };
 
-  const PlayerList = (players: Player[], header: string) => {
+  const PlayerList = ({
+    players,
+    header,
+  }: {
+    players: TPlayer[];
+    header: string;
+  }) => {
     return (
       <div className="h-auto max-w-[400px] overflow-y-auto rounded-lg bg-gray-900 p-4 shadow-lg">
         <h2 className="mb-2 text-lg font-bold text-white">{header}</h2>
@@ -237,7 +242,9 @@ export default function Game() {
       <div className="order-1 flex h-auto w-full flex-col justify-between bg-gray-800 md:order-2 md:h-full md:w-1/2">
         <div className="h-auto pb-8 pl-8 pr-8 md:h-[40%]">
           <div className="h-[100%] flex-1 rounded-2xl bg-gray-900 p-4 text-white shadow-lg">
-            <h2 className="mb-2 text-xl font-bold">{roles[roleId]!.display_name}</h2>
+            <h2 className="mb-2 text-xl font-bold">
+              {roles[roleId]!.display_name}
+            </h2>
             <p className="whitespace-pre-line">{roles[roleId]!.description}</p>
             {extraInfo && <p>{extraText}</p>}
           </div>
@@ -249,13 +256,17 @@ export default function Game() {
             <div className="flex flex-row justify-evenly">
               {actionId == 0 && (
                 <div className="flex flex-row justify-center p-4">
-                  <Button variant="default" onClick={() => setActionId(roleId + 1)}>
+                  <Button
+                    variant="default"
+                    onClick={() => setActionId(roleId + 1)}
+                  >
                     Continue
                   </Button>
                 </div>
               )}
-              {prompts[actionId]!.requires_players &&
-                PlayerList(players!, "Players")}
+              {prompts[actionId]!.requires_players && (
+                <PlayerList players={players!} header="Players" />
+              )}
               {gamestate == GameStates.VOTING &&
                 VotingList(
                   livingPlayers!.map((player) => player.name),
@@ -305,4 +316,3 @@ export default function Game() {
     </div>
   );
 }
-
