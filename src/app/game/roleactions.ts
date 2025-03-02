@@ -9,12 +9,12 @@ export function FreeAgentAction(playerId: number, selectedId: number) {
     console.error("Could not find desired role: ", role);
   }
 
-  modifyRole({ id: playerId, role: role![0] });
+  modifyRole({ id: playerId, role: role! });
 }
 
 export function InfluencerAction() {
-  return ({ data: player } =
-    api.gamestate.getPlayerByRole.useQuery("influencer"));
+  const { data: player } = api.gamestate.getPlayerByRole.useQuery("influencer");
+  return player;
 }
 
 export function DetectiveAction(selectedId: number) {
@@ -34,7 +34,7 @@ export function VirusAction(
     console.error("Could not find desired role: ", role);
   }
 
-  modifyRole({ id: playerId, role: role![0] });
+  modifyRole({ id: playerId, role: role! });
   modifyRole({ id: selectedId, role: currentRole });
 }
 
@@ -44,8 +44,8 @@ export function HackerAction(firstSelectId: number, secondSelectedId: number) {
 
   const { mutate: modifyRole } = api.gamestate.changeRole.useMutation();
 
-  modifyRole({ id: firstSelectId, role: role2 });
-  modifyRole({ id: secondSelectedId, role: role1 });
+  modifyRole({ id: firstSelectId, role: role2! });
+  modifyRole({ id: secondSelectedId, role: role1! });
 }
 
 export function SkepticAction(playerId: number) {

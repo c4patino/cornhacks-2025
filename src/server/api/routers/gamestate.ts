@@ -83,30 +83,37 @@ export const gamestateRouter = createTRPCRouter({
       }
     }),
 
-  getRole: publicProcedure
-    .input(z.number())
-    .query(async ({ input, ctx, signal }) => {
-      const player = await ctx.db.query.players
-        .findFirst({
-          where: (player, { eq }) => eq(player.id, input),
-        })
-        .execute();
+  getRole: publicProcedure.input(z.number()).query(async ({ input, ctx }) => {
+    const player = await ctx.db.query.players
+      .findFirst({
+        where: (player, { eq }) => eq(player.id, input),
+      })
+      .execute();
 
-      if (!player) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message:
-            "That player was not found, please check your join code and try again.",
-        });
-      }
+    if (!player) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message:
+          "That player was not found, please check your join code and try again.",
+      });
+    }
 
-      return player;
-    }),
+    const playerRole = player.role;
+
+    if (typeof playerRole !== "string") {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message:
+          "Player role should be a string, but received an invalid type.",
+      });
+    }
+
+    return playerRole;
+  }),
 
   getPlayerByRole: publicProcedure.input(z.string()).query(async function* ({
     input,
     ctx,
-    signal,
   }) {
     const player = await ctx.db.query.players
       .findFirst({
@@ -122,15 +129,7 @@ export const gamestateRouter = createTRPCRouter({
       });
     }
 
-    for await (const _ of on(ee, "game_state", { signal })) {
-      const player = await ctx.db.query.players
-        .findMany({
-          where: (player, { eq }) => eq(player.role, input),
-        })
-        .execute();
-
-      yield player;
-    }
+    return player;
   }),
 
   changeRole: publicProcedure
