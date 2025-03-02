@@ -4,31 +4,30 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
-import { db } from "@/server/db";
 import { games, players } from "@/server/db/schema";
 import { ee } from "@/trpc/shared";
 import { GameStatus, PlayerRole } from "@/lib/types";
 import { shuffle } from "@/lib/utils";
 
 export const gameRouter = createTRPCRouter({
-  create: publicProcedure.mutation(async ({ input }) => {
+  create: publicProcedure.mutation(async ({ ctx, input }) => {
     console.log(input);
 
-    const [game] = await db
+    const [game] = await ctx.db
       .insert(games)
       .values({})
       .returning({ id: games.id });
 
     if (!game) throw new Error("Error creating game");
 
-    const [player] = await db
+    const [player] = await ctx.db
       .insert(players)
       .values({ gameId: game.id })
       .returning({ id: games.id });
 
     if (!player) throw new Error("Error creating player");
 
-    await db
+    await ctx.db
       .update(games)
       .set({ owner: player.id })
       .where(eq(games.id, game.id));
@@ -60,11 +59,32 @@ export const gameRouter = createTRPCRouter({
     }
   }),
 
-  join: publicProcedure.input(z.number()).mutation(async ({ input }) => {
-    const [player] = await db
+  join: publicProcedure.input(z.number()).mutation(async ({ input, ctx }) => {
+    const game = await ctx.db.query.games
+      .findFirst({
+        where: (game, { eq }) => eq(game.id, input),
+      })
+      .execute();
+
+    if (!game) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message:
+          "That game was not found, please check your join code and try again.",
+      });
+    }
+
+    const [player] = await ctx.db
       .insert(players)
-      .values({ gameId: input })
+      .values({ gameId: game.id })
       .returning({ id: players.id });
+
+    if (!player) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Oops! Something went wrong!",
+      });
+    }
 
     ee.emit("join");
 

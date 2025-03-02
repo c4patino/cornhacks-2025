@@ -2,31 +2,30 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
+import { useGlobalState } from "@/app/_components/context";
 
 export const dynamic = "force-static";
 
 export default function JoinPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+
+  const { gameData, playerData } = useGlobalState();
 
   const [playerList, setPlayerList] = useState([]);
 
   const gameStart = api.game.start.useMutation();
 
-  const gameIdParam = searchParams.get("id");
-  const gameId = gameIdParam ? Number(gameIdParam) : NaN;
-
   useEffect(() => {
-    if (isNaN(gameId)) {
+    if (!gameData.id) {
       router.push("/");
     }
-  }, [gameId, router]);
+  }, [gameData, router]);
 
-  api.game.playersList.useSubscription(gameId, {
+  api.game.playersList.useSubscription(gameData.id, {
     onData(data: any) {
       console.log(data);
       setPlayerList(data);
@@ -37,7 +36,7 @@ export default function JoinPage() {
   });
 
   const handleStart = () => {
-    gameStart.mutate({ gameId, playerId: 1 });
+    gameStart.mutate({ gameId: gameData.id, playerId: playerData.id! });
   };
 
   return (

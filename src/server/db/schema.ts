@@ -8,6 +8,8 @@ import {
   boolean,
   foreignKey,
 } from "drizzle-orm/pg-core";
+import { z } from "zod";
+import { createSelectSchema, createInsertSchema } from "drizzle-zod";
 
 import { PlayerRole, GameStatus, GameStates } from "@/lib/types";
 
@@ -46,6 +48,8 @@ export const games = createTable(
   }),
 );
 
+export type TGame = typeof games.$inferSelect;
+
 export const playerRoleEnum = pgEnum("role", enumToPgEnum(PlayerRole));
 
 export const players = createTable(
@@ -66,3 +70,5 @@ export const players = createTable(
     ],
   }),
 );
+
+export type TPlayer = typeof players.$inferSelect;

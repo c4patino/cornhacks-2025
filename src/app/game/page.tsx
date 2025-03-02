@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { Message } from "@/lib/types";
 import { api } from "@/trpc/react";
+import { useGlobalState } from "@/app/_components/context";
 
 const FormSchema = z.object({
   text: z.string().max(200, {
@@ -39,6 +40,9 @@ export default function Game() {
     isLoading,
     error,
   } = api.gamestate.getLivingPlayers.useQuery();
+
+  const { gameData, playerData } = useGlobalState();
+
   const [gamestate, setGameState] = useState<{} | undefined>(undefined);
   const [actionId, setActionId] = useState(0);
 

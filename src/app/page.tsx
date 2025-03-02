@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/trpc/react";
+import { useGlobalState } from "@/app/_components/context";
 
 const FormSchema = z.object({
   id: z.string().max(6, { message: "Not a valid game room id." }),
@@ -23,8 +24,9 @@ const FormSchema = z.object({
 
 export default function StartPage() {
   const router = useRouter();
+  const { setGameData, setPlayerData } = useGlobalState();
   const gameMutator = api.game.create.useMutation();
-  const playerMutator = api.game.join.useMutation();
+  const { mutateAsync: joinGame } = api.game.join.useMutation();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -34,14 +36,19 @@ export default function StartPage() {
   async function handleGameCreate() {
     const { game, player } = await gameMutator.mutateAsync();
 
-    router.push(`/game/join?id=${game.id}`);
+    setPlayerData({ id: player.id });
+    setGameData({ id: game.id });
+
+    router.push("/game/join");
   }
 
   async function handleGameJoin(data: z.infer<typeof FormSchema>) {
-    const idAsNumber = Number(data.id);
-    const { player } = await playerMutator.mutateAsync(idAsNumber);
+    const { player } = await joinGame(Number(data.id));
 
-    router.push(`/game/join?id=${data.id}`);
+    setPlayerData({ id: player.id });
+    setGameData({ id: Number(data.id) });
+
+    router.push("/game/join");
   }
 
   return (
