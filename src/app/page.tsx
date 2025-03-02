@@ -4,12 +4,18 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { api } from "../trpc/react";
+import { createLobby } from "./api/trpc/[trpc]/queries";
 
 
 export default function StartPage() {
   const router = useRouter();
 
-  const makeLobby = () => {console.log("Filler Text")}
+  const makeLobby = async () => {
+    const lobbyId = await createLobby();
+    console.log(lobbyId);
+    //router.push(`/create?id=${lobbyId}`)
+  }
 
   return (
     <div className="flex flex-col items-center justify-evenly h-screen bg-gradient-to-b from-blue-800 to-blue-950">

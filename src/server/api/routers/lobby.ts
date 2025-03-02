@@ -13,9 +13,10 @@ export const lobbyRouter = createTRPCRouter({
           status: "Starting",
           currentPhase: "Lobby",
         })
-        .returning({ id: schema.games.id });
+        .returning({ id: schema.games.id })
+        .execute();
 
-      return result[0]?.id ?? null;
+      return result[0]?.id ? Number(result[0].id) : null;
     } catch (error) {
       console.error("Error creating lobby:", error);
       throw new Error("Failed to create lobby");
