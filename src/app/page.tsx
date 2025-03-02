@@ -53,12 +53,12 @@ export default function StartPage() {
 
   return (
     <div className="flex h-screen flex-col items-center justify-evenly bg-gradient-to-b from-blue-800 to-blue-950">
-      <div className="text-5xl">The Final Transmission</div>
+      <div className="text-5xl text-center">The Final Transmission</div>
       <div className="flex flex-col items-center">
         <div className="flex flex-row">
           <div className="px-4 py-1">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleGameJoin)}>
+              <form className="flex flex-row" onSubmit={form.handleSubmit(handleGameJoin)}>
                 <FormField
                   control={form.control}
                   name="id"
@@ -71,7 +71,9 @@ export default function StartPage() {
                     </FormItem>
                   )}
                 />
-                <Button type="submit">Join</Button>
+                <div className="pl-4">
+                  <Button type="submit">Join</Button>
+                </div>
               </form>
             </Form>
           </div>
@@ -84,11 +86,7 @@ export default function StartPage() {
           </div>
         </div>
       </div>
-      <div>
-        <Link href="./game">
-          <div>Go to Chat Page</div>
-        </Link>
-      </div>
+      <div></div>
     </div>
   );
 }

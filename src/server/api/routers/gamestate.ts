@@ -83,35 +83,25 @@ export const gamestateRouter = createTRPCRouter({
       }
     }),
 
-  getRole: publicProcedure.input(z.number()).query(async function* ({
-    input,
-    ctx,
-    signal,
-  }) {
-    const player = await ctx.db.query.players
-      .findFirst({
-        where: (player, { eq }) => eq(player.id, input),
-      })
-      .execute();
-
-    if (!player) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message:
-          "That player was not found, please check your join code and try again.",
-      });
-    }
-
-    for await (const _ of on(ee, "game_state", { signal })) {
+  getRole: publicProcedure
+    .input(z.number())
+    .query(async ({ input, ctx, signal }) => {
       const player = await ctx.db.query.players
         .findFirst({
           where: (player, { eq }) => eq(player.id, input),
         })
         .execute();
 
-      yield player;
-    }
-  }),
+      if (!player) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message:
+            "That player was not found, please check your join code and try again.",
+        });
+      }
+
+      return player;
+    }),
 
   getPlayerByRole: publicProcedure.input(z.string()).query(async function* ({
     input,
@@ -191,5 +181,15 @@ export const gamestateRouter = createTRPCRouter({
         .where(eq(player.id, input));
 
       ee.emit("game_state");
+    }),
+
+  getLobbyPlayers: publicProcedure
+    .input(z.number())
+    .query(async ({ input, ctx }) => {
+      const player = await ctx.db.query.players.findMany({
+        where: (player, { eq }) => eq(player.gameId, input),
+      });
+
+      return player;
     }),
 });

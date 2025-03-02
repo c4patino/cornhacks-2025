@@ -7,6 +7,9 @@ import { GameStates } from "@/lib/types";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { FreeAgentAction, InfluencerAction, DetectiveAction, 
+    VirusAction, HackerAction, SkepticAction, CraziedAction, 
+    SharedFateAction} from "./roleactions";
 
 import {
   Form,
@@ -21,14 +24,19 @@ import { useState, useEffect } from "react";
 import { Message } from "@/lib/types";
 import { api } from "@/trpc/react";
 import { useGlobalState } from "@/app/_components/context";
+import { PlayerRole } from "@/lib/types";
+
+interface Player {
+  id: number;
+  name: string;
+  role: PlayerRole | null;
+  gameId: number;
+  isAlive: boolean;
+  isAi: boolean;
+  lastAction: Date | null;
+}
 
 const FormSchema = z.object({
-  text: z.string().max(200, {
-    message: "Your message must be less than 200 characters.",
-  }),
-});
-
-const SecondFormSchema = z.object({
   text: z.string().max(200, {
     message: "Your message must be less than 200 characters.",
   }),
@@ -43,24 +51,26 @@ export default function Game() {
 
   const { gameData, playerData } = useGlobalState();
 
+  const { data: players } = api.gamestate.getLobbyPlayers.useQuery(gameData.id ?? 0);
   const [gamestate, setGameState] = useState<{} | undefined>(undefined);
   const [actionId, setActionId] = useState(0);
 
   const [messages, setMessages] = useState<Message[]>([]);
 
   const { mutate: send } = api.chat.send.useMutation();
-  const { data: recState } = api.gamestate.getState.useQuery(1);
+  const { data: recState } = api.gamestate.getState.useQuery(gameData.id ?? 0);
   const { mutate: modifyState } = api.gamestate.advanceState.useMutation();
+  const { data: role } = api.gamestate.getRole.useQuery(playerData.id ?? 0);
+
+  const roleId = findRoleId();
+  let extraInfo = false;
+  let extraText = "";
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: { text: "" },
   });
 
-  const secondForm = useForm<z.infer<typeof SecondFormSchema>>({
-    resolver: zodResolver(SecondFormSchema),
-    defaultValues: { text: "" },
-  });
 
   function onSubmit(data: z.infer<typeof FormSchema>) {
     send({
@@ -68,10 +78,6 @@ export default function Game() {
       sender: 0,
       timestamp: new Date(),
     });
-  }
-
-  function onSecondSubmit(data: z.infer<typeof SecondFormSchema>) {
-    modifyState({ gameId: 1, state: data.text });
   }
 
   api.chat.get.useSubscription(undefined, {
@@ -98,13 +104,77 @@ export default function Game() {
     }
   }, [recState]);
 
-  const handleRoleAction = () => {
-    setActionId(12);
+  function findRoleId() {
+    switch (role?.role ?? "illiterate") {
+      case "free_agent":
+        return Number(0);
+      case "influencer":
+        return Number(1);
+      case "detective":
+        return Number(2);
+      case "virus":
+        return Number(3);
+      case "hacker":
+        return Number(4);
+      case "skeptic":
+        return Number(5);
+      case "crazied":
+        return Number(6);
+      case "shared_fate":
+        return Number(7);
+      case "illiterate":
+        return Number(8);
+      default:
+        return Number(0);
+    }
+  }
+
+  // Every time a player enters their role action, this function is triggered
+  // to activate changes
+  const handleRoleAction = (selectedId: number) => {
+    const playerId = playerData.id ?? 0;
+    switch (role!.role) {
+      case "free_agent":
+        FreeAgentAction(playerId, selectedId);
+        break;
+      case "influencer":
+        InfluencerAction();
+        break;
+      case "detective":
+        const player = DetectiveAction(selectedId);
+        extraText = `${player!.name} has the ${player!.role} role.`
+        console.log(extraText);
+        extraInfo = true;
+        break;
+      case "virus":
+        VirusAction(playerId, "virus", selectedId);
+        break;
+      case "hacker":
+        HackerAction(selectedId, 3);
+        break;
+      case "skeptic":
+        const selfRole = SkepticAction(playerId);
+        extraText = `You have the ${selfRole} role.`
+        extraInfo = true;
+        break;
+      case "crazied":
+        CraziedAction(playerId);
+        break;
+      case "shared_fate":
+        SharedFateAction(selectedId);
+        break;
+      default:
+        break;
+    }
+
+    setActionId(13);
   };
 
-  const samplePlayers = ["Player One", "Player Two", "Player Three"];
+  const handleVoteAction = () => {
+    setActionId(2);
+  }
 
-  const PlayerList = (players: string[], header: string) => {
+  const PlayerList = (players: Player[], header: string) => {
     return (
       <div className="h-auto max-w-[400px] overflow-y-auto rounded-lg bg-gray-900 p-4 shadow-lg">
         <h2 className="mb-2 text-lg font-bold text-white">{header}</h2>
@@ -113,9 +183,9 @@ export default function Game() {
             <button
               key={index}
               className="rounded-md bg-blue-700 px-4 py-2 text-white transition hover:bg-blue-800"
-              onClick={handleRoleAction}
+              onClick={() => handleRoleAction(player.id)}
             >
-              {player}
+              {player.name}
             </button>
           ))}
         </div>
@@ -132,6 +202,7 @@ export default function Game() {
             <button
               key={index}
               className="rounded-md bg-blue-700 px-4 py-2 text-white transition hover:bg-blue-800"
+              onClick={handleVoteAction}
             >
               {player}
             </button>
@@ -166,29 +237,25 @@ export default function Game() {
       <div className="order-1 flex h-auto w-full flex-col justify-between bg-gray-800 md:order-2 md:h-full md:w-1/2">
         <div className="h-auto pb-8 pl-8 pr-8 md:h-[40%]">
           <div className="h-[100%] flex-1 rounded-2xl bg-gray-900 p-4 text-white shadow-lg">
-            <h2 className="mb-2 text-xl font-bold">{roles[0]!.display_name}</h2>
-            <p className="whitespace-pre-line">{roles[0]!.description}</p>
+            <h2 className="mb-2 text-xl font-bold">{roles[roleId]!.display_name}</h2>
+            <p className="whitespace-pre-line">{roles[roleId]!.description}</p>
+            {extraInfo && <p>{extraText}</p>}
           </div>
         </div>
         <div className="h-auto pb-8 pl-8 pr-8 md:h-[60%] md:pb-0 md:pt-8">
           <div className="h-[100%] flex-1 rounded-2xl bg-gray-900 p-4 text-white shadow-lg">
-            <h2 className="mb-2 text-xl font-bold">Randomly Generated Name</h2>
+            <h2 className="mb-2 text-xl font-bold">{playerData.name}</h2>
             <p className="whitespace-pre-line">{prompts[actionId]!.prompt}</p>
             <div className="flex flex-row justify-evenly">
               {actionId == 0 && (
                 <div className="flex flex-row justify-center p-4">
-                  <Button variant="default" onClick={() => setActionId(1)}>
+                  <Button variant="default" onClick={() => setActionId(roleId + 1)}>
                     Continue
                   </Button>
                 </div>
               )}
               {prompts[actionId]!.requires_players &&
-                PlayerList(samplePlayers, "Players")}
-              {prompts[actionId]!.requires_unused &&
-                PlayerList(
-                  ["Card One", "Card Two", "Card Three"],
-                  "Unused Roles",
-                )}
+                PlayerList(players!, "Players")}
               {gamestate == GameStates.VOTING &&
                 VotingList(
                   livingPlayers!.map((player) => player.name),
@@ -234,29 +301,8 @@ export default function Game() {
             </form>
           </Form>
         </div>
-        <div className="mt-4 flex">
-          <Form {...secondForm}>
-            <form
-              onSubmit={secondForm.handleSubmit(onSecondSubmit)}
-              className="flex w-full"
-            >
-              <FormField
-                control={secondForm.control}
-                name="text"
-                render={({ field }) => (
-                  <FormItem className="w-full">
-                    <FormControl>
-                      <Input placeholder="Game state" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit">Switch</Button>
-            </form>
-          </Form>
-        </div>
       </div>
     </div>
   );
 }
+

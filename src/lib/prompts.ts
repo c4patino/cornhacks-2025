@@ -41,8 +41,7 @@ export const prompts: Prompt[] = [
   {
     id: 5,
     key: "Detective Action",
-    prompt:
-      "Select another player to see their role or select two cards from the unused role pile to view.",
+    prompt: "Select another player to see their role.",
     requires_players: true,
     requires_unused: true,
   },
@@ -64,12 +63,19 @@ export const prompts: Prompt[] = [
   {
     id: 8,
     key: "Crazied Action",
-    prompt: "Select a card in the middle to swap your role with.",
+    prompt: "Would you like to swap your card out?",
     requires_players: false,
     requires_unused: true,
   },
   {
     id: 9,
+    key: "Skeptic Action",
+    prompt: "Would you like to check your own card?",
+    requires_players: false,
+    requires_unused: false,
+  },
+  {
+    id: 10,
     key: "Shared Fate Action",
     prompt:
       "You will bring down exactly who you intend to. \n \n Please wait while the other players finish their actions.",
@@ -77,7 +83,7 @@ export const prompts: Prompt[] = [
     requires_unused: false,
   },
   {
-    id: 10,
+    id: 11,
     key: "Illiterate Action",
     prompt:
       "Remember, you just want to keep your job when its all said and done, so stay alive. \n \n Please wait while the other players finish their actions.",
@@ -85,7 +91,7 @@ export const prompts: Prompt[] = [
     requires_unused: false,
   },
   {
-    id: 11,
+    id: 12,
     key: "Chat Phase",
     prompt:
       "This is your time to discuss with the other members to deduce who is the real evil AI. Remember that no one is safe.",
@@ -93,14 +99,14 @@ export const prompts: Prompt[] = [
     requires_unused: false,
   },
   {
-    id: 12,
+    id: 13,
     key: "Vote Phase",
     prompt: "Vote for the player who you believe to be the AI.",
     requires_players: true,
     requires_unused: false,
   },
   {
-    id: 13,
+    id: 14,
     key: "Waiting on Players",
     prompt: "Please wait while players finish their actions.",
     requires_players: false,

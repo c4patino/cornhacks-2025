@@ -48,6 +48,7 @@ export default function JoinPage() {
     if (!gameData?.id || !playerData?.id) return;
 
     gameStart.mutate({ gameId: gameData.id, playerId: playerData.id! });
+    router.push("/game")
   };
 
   return (
@@ -58,7 +59,7 @@ export default function JoinPage() {
       <div className="max-h-[100%] max-w-[75%] items-center justify-evenly p-5">
         <div className="mb-6 flex items-center justify-between">
           <div className="w-[115px]"></div>
-          <h1 className="text-3xl font-bold">Room ID: 123456</h1>
+          <h1 className="text-3xl font-bold">Room ID: {gameData.id}</h1>
           <div className="pl-5">
             <Button variant="default" onClick={handleStart}>
               Start Game

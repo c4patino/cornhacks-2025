@@ -1,7 +1,7 @@
 import { api } from "@/trpc/react";
 import { PlayerRole } from "@/lib/types";
 
-export function freeAgentAction(playerId: number, selectedId: number) {
+export function FreeAgentAction(playerId: number, selectedId: number) {
   const { data: role } = api.gamestate.getRole.useQuery(selectedId);
   const { mutate: modifyRole } = api.gamestate.changeRole.useMutation();
 
@@ -19,7 +19,7 @@ export function InfluencerAction() {
 
 export function DetectiveAction(selectedId: number) {
   const { data: role } = api.gamestate.getRole.useQuery(selectedId);
-  return role![0];
+  return role;
 }
 
 export function VirusAction(
@@ -51,7 +51,7 @@ export function HackerAction(firstSelectId: number, secondSelectedId: number) {
 export function SkepticAction(playerId: number) {
   const { data: role } = api.gamestate.getRole.useQuery(playerId);
 
-  return role![0];
+  return role;
 }
 
 export function CraziedAction(playerId: number) {
