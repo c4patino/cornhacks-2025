@@ -29,7 +29,7 @@ export const roles: Role[] = [
     role: "DETECTIVE",
     display_name: "Detective",
     description:
-      "You don't know a lot about AIs or even about coding, but you do know quite a bit about people and their nature. \n \n Abilites: \n You can choose to look at another player's role or look at two unused roles.",
+      "You don't know a lot about AIs or even about coding, but you do know quite a bit about people and their nature. \n \n Abilites: \n You can choose to look at another player's role.",
   },
   {
     role: "VIRUS",
@@ -53,7 +53,7 @@ export const roles: Role[] = [
     role: "CRAZIED",
     display_name: "Crazied",
     description:
-      "Chaos! Chaos! Chaos! Wait... Was I saying something??? \n \n Abilities: \n You can swap your role with a random unused role.",
+      "Chaos! Chaos! Chaos! Wait... Was I saying something??? \n \n Abilities: \n You can swap your role to a random role.",
   },
   {
     role: "SHARED_FATE",
