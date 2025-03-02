@@ -50,26 +50,35 @@ export async function alterGameState(gameId: number, state: GameStates) {
       console.error("Invalid game state found", newState);
   }
 
+  const runTimer = (duration: number) => {
+    setTimeout(() => {}, duration * 1000);
+  };
+
   function actionMode() {
     // Default state
     // Should render role in top right and action in bottom right
     // Chat should be disabled
   }
 
-  const runTimer = (duration: number) => {
-    setTimeout(() => {}, duration * 1000);
-  };
-
   function chattingMode() {
     // Actionid should be set to 12
     // Chat should be opened
     runTimer(60);
   }
+
   function votingMode() {
-    //
+    // Chat is disabled
+    // Game is frozen until all votes are cast
   }
-  function kickingMode() {}
-  function endMode() {}
+
+  function kickingMode() {
+    // Short and functional state
+    // Followed by actionMode or endMode depending on win condition
+  }
+
+  function endMode() {
+    // Handles the end of the game
+  }
 }
 
 export function findRoleId(value: string) {
