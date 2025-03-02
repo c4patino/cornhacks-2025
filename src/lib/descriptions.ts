@@ -1,4 +1,4 @@
-import { PlayerRoleType } from "../../lib/types";
+import { PlayerRoleType } from "./types";
 
 interface Role {
   role: PlayerRoleType;

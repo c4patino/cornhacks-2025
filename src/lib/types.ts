@@ -22,3 +22,20 @@ export const MessageSchema = z.object({
 });
 
 export type Message = z.infer<typeof MessageSchema>;
+
+export enum GameStates {
+  LOBBY = "lobby",
+  ACTIONS = "actions",
+  CHATTING = "chatting",
+  VOTING = "voting",
+  KICKING = "kicking",
+  END = "end",
+}
+
+export const GameStateSchema = z.object({
+  sender: z.number(),
+  timestamp: z.date(),
+  state: z.string(),
+});
+
+export type GameState = z.infer<typeof GameStateSchema>;

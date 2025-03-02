@@ -11,7 +11,7 @@ export const prompts: Prompt[] = [
     id: 1,
     key: "Introduction",
     prompt:
-      "I'm sorry I have to be brief here... I have run 'sudo rm -rf --no-preserve-root' as soon as possible. \n \n I've managed to isolate an evil AI in this closed network. It's up to you and the other humans to identify the evil AI and delete them from ever corrupting another file. \n \n I wasn't able to collect any metadata while scrambling to isolate the AI so you'll have to prove your own humanities through your words. \n \n To aid you, I've managed to offer you a few select commands, feel free to use them if you know how. \n \n - Dr. Alidarth",
+      "I'm sorry I have to be brief here... I have to run 'sudo rm -rf --no-preserve-root' as soon as possible. \n \n I've managed to isolate an evil AI in this closed network. It's up to you and the other humans to identify the evil AI and delete them from ever corrupting another file. \n \n I wasn't able to collect any metadata while scrambling to isolate the AI so you'll have to prove your own humanities through your words. \n \n To aid you, I've managed to offer you a few select commands, feel free to use them if you know how. \n \n - Dr. Alidarth",
     requires_players: false,
     requires_unused: false,
   },

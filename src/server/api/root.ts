@@ -6,6 +6,7 @@ import {
 
 import { lobbyRouter } from "@/server/api/routers/lobby";
 import { chatRouter } from "@/server/api/routers/chat";
+import { gamestateRouter } from "@/server/api/routers/gamestate";
 
 /**
  * This is the primary router for your server.
@@ -15,6 +16,7 @@ import { chatRouter } from "@/server/api/routers/chat";
 export const appRouter = createTRPCRouter({
   healthcheck: publicProcedure.query(() => "ok"),
   lobby: lobbyRouter,
+  gamestate: gamestateRouter,
   chat: chatRouter,
 });
 
