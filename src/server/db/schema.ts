@@ -9,7 +9,7 @@ import {
   foreignKey,
 } from "drizzle-orm/pg-core";
 
-import { PlayerRole, GameStatus } from "@/lib/types";
+import { PlayerRole, GameStatus, GameStates } from "@/lib/types";
 
 export function enumToPgEnum<T extends Record<string, any>>(
   myEnum: T,
@@ -20,6 +20,10 @@ export function enumToPgEnum<T extends Record<string, any>>(
 export const createTable = pgTableCreator((name) => `cornhacks-2025_${name}`);
 
 export const gameStatusEnum = pgEnum("status", enumToPgEnum(GameStatus));
+export const gameCurrentPhaseEnum = pgEnum(
+  "current_phase",
+  enumToPgEnum(GameStates),
+);
 
 export const games = createTable(
   "game",
@@ -29,7 +33,7 @@ export const games = createTable(
     status: varchar("status", { length: 50 })
       .default(GameStatus.JOINING)
       .notNull(),
-    currentPhase: varchar("current_phase", { length: 50 }),
+    currentPhase: gameCurrentPhaseEnum("current_phase"),
     startTime: timestamp("start_time", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),

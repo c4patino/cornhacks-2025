@@ -2,7 +2,6 @@
 
 import { roles } from "../../lib/descriptions";
 import { prompts } from "../../lib/prompts";
-import { alterGameState, findRoleId } from "./state";
 import { GameStates } from "@/lib/types";
 
 import { z } from "zod";
@@ -40,7 +39,7 @@ export default function Game() {
     isLoading,
     error,
   } = api.gamestate.getLivingPlayers.useQuery();
-  const [gamestate, setGameState] = useState<GameStates | null>(null);
+  const [gamestate, setGameState] = useState<{} | undefined>(undefined);
   const [actionId, setActionId] = useState(0);
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -68,8 +67,7 @@ export default function Game() {
   }
 
   function onSecondSubmit(data: z.infer<typeof SecondFormSchema>) {
-    console.log(data.text);
-    modifyState({ gameId: 78, state: data.text });
+    modifyState({ gameId: 1, state: data.text });
   }
 
   api.chat.get.useSubscription(undefined, {
@@ -81,7 +79,7 @@ export default function Game() {
     },
   });
 
-  api.gamestate.getGameState.useSubscription(undefined, {
+  api.gamestate.getGameState.useSubscription(1, {
     onData(data) {
       setGameState(data);
     },
@@ -201,7 +199,7 @@ export default function Game() {
       <div className="order-2 flex w-full flex-col rounded-2xl border-r border-gray-700 bg-gray-900 p-6 text-white md:order-1 md:w-1/2 md:overflow-y-auto">
         <div className="flex w-full flex-row justify-between">
           <h2 className="mb-4 text-xl font-bold">
-            The Final Transmission Chat: {gamestate}
+            The Final Transmission Chat: {gamestate && gamestate?.currentPhase}
           </h2>
           {gamestate == GameStates.CHATTING && <Timer duration={60} />}
         </div>

@@ -39,6 +39,8 @@ export const gamestateRouter = createTRPCRouter({
         })
         .execute();
 
+      console.log(game);
+
       if (!game) {
         throw new TRPCError({
           code: "NOT_FOUND",
