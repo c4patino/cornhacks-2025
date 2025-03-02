@@ -17,7 +17,7 @@ This application is entirely web-based and works on cross-platform.
 - Vercel
 - OpenAI API
 
-To use the app, download the code `pnpm i ` and `pnpm run dev` to get a localhost environment. The database will not be set up by this point, but the frontend will still be avaible for inspection. 
+To use the app, download the code and run `pnpm i ` and `pnpm run dev` to get a localhost environment. The database will not be set up by this point, but the frontend will still be avaible for inspection. 
 
 The Final Transmission was created in less than a day and remember... the AI is always watching.
 
