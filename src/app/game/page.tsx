@@ -30,7 +30,7 @@ import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { api } from "@/trpc/react";
 import { useGlobalState } from "@/app/_components/context";
-import { type PlayerRole, type Message } from "@/lib/types";
+import { type Message } from "@/lib/types";
 import { type TPlayer } from "@/server/db/schema";
 
 const FormSchema = z.object({
@@ -42,20 +42,18 @@ const FormSchema = z.object({
 export default function Game() {
   const { data: livingPlayers } = api.gamestate.getLivingPlayers.useQuery();
 
-  const { gameData, playerData } = useGlobalState();
+  const { gameData, playerData, setGameData } = useGlobalState();
 
   const { data: players } = api.gamestate.getLobbyPlayers.useQuery(
     gameData.id ?? 0,
   );
-  const [gamestate, setGameState] = useState<{} | undefined>(undefined);
   const [actionId, setActionId] = useState(0);
 
   const [messages, setMessages] = useState<Message[]>([]);
 
-  const { mutate: send } = api.chat.send.useMutation();
-  const { data: recState } = api.gamestate.getState.useQuery(gameData.id ?? 0);
-  const { mutate: modifyState } = api.gamestate.advanceState.useMutation();
-  const { data: role } = api.gamestate.getRole.useQuery(playerData.id ?? 0);
+  const { mutate: sendChatMessage } = api.chat.send.useMutation();
+
+  const { data: role } = api.gamestate.getRole.useQuery(playerData?.id! ?? 0);
 
   const roleId = findRoleId();
   let extraInfo = false;
@@ -67,7 +65,7 @@ export default function Game() {
   });
 
   function onSubmit(data: z.infer<typeof FormSchema>) {
-    send({
+    sendChatMessage({
       message: data.text,
       sender: 0,
       timestamp: new Date(),
@@ -85,18 +83,13 @@ export default function Game() {
 
   api.gamestate.getGameState.useSubscription(1, {
     onData(data) {
-      setGameState(data);
+      if (!data) return;
+      setGameData(data);
     },
     onError(err) {
       console.error(err);
     },
   });
-
-  useEffect(() => {
-    if (recState && recState.length > 0) {
-      setGameState(recState[0]!.current_phase as GameStates);
-    }
-  }, [recState]);
 
   function findRoleId() {
     switch (role) {
@@ -193,7 +186,13 @@ export default function Game() {
     );
   };
 
-  const VotingList = (players: string[], header: string) => {
+  const VotingList = ({
+    players,
+    header,
+  }: {
+    players: TPlayer[];
+    header: string;
+  }) => {
     return (
       <div className="h-auto max-w-[400px] overflow-y-auto rounded-lg bg-gray-900 p-4 shadow-lg">
         <h2 className="mb-2 text-lg font-bold text-white">{header}</h2>
@@ -204,13 +203,14 @@ export default function Game() {
               className="rounded-md bg-blue-700 px-4 py-2 text-white transition hover:bg-blue-800"
               onClick={handleVoteAction}
             >
-              {player}
+              {player.name}
             </button>
           ))}
         </div>
       </div>
     );
   };
+
   const Timer = ({ duration }: { duration: number }) => {
     const [timeLeft, setTimeLeft] = useState(duration);
 
@@ -262,11 +262,9 @@ export default function Game() {
               {prompts[actionId]!.requires_players && (
                 <PlayerList players={players!} header="Players" />
               )}
-              {gamestate == GameStates.VOTING &&
-                VotingList(
-                  livingPlayers!.map((player) => player.name),
-                  "Vote",
-                )}
+              {gameData.currentPhase == GameStates.VOTING && (
+                <VotingList players={livingPlayers!} header="Vote" />
+              )}
             </div>
           </div>
         </div>
@@ -278,7 +276,9 @@ export default function Game() {
           <h2 className="mb-4 text-xl font-bold">
             The Final Transmission Chat
           </h2>
-          {gamestate == GameStates.CHATTING && <Timer duration={60} />}
+          {gameData.currentPhase == GameStates.CHATTING && (
+            <Timer duration={60} />
+          )}
         </div>
         <div className="h-[85%] flex-1 flex-col justify-end">
           {messages.map((message) => (
