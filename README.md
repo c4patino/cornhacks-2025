@@ -16,6 +16,7 @@ This application is entirely web-based and works on cross-platform.
 - Tailscale
 - Vercel
 - OpenAI API
+- Next.js
 
 To use the app, download the code and run `pnpm i ` and `pnpm run dev` to get a localhost environment. The database will not be set up by this point, but the frontend will still be avaible for inspection. 
 
