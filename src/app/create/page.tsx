@@ -7,17 +7,17 @@ export default async function JoinPage() {
   
 
   return (
-    <div className="flex flex-col h-screen items-center text-white bg-gradient-to-b from-blue-800 to-blue-950">
+    <div className="flex flex-col h-screen items-center text-white bg-gradient-to-b from-blue-800 to-blue-950 overflow-y-auto">
       <div className="w-[100%] text-4xl p-5">
         <Link href="./">
           The Final Transmission
         </Link>
       </div>
       <div className="max-w-[75%] max-h-[100%] p-5 justify-evenly items-center">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col md:flex-row justify-between items-center mb-6">
           <div className="w-[115px]"></div>
-          <h1 className="text-3xl font-bold">Room ID: 123456</h1>
-          <div className="pl-5">
+          <h1 className="text-3xl font-bold text-center">Room ID: 123456</h1>
+          <div className="pl-5 pt-5 md:pt-0">
             <Link href="./game">
               <Button variant="default">Start Game</Button>
             </Link>

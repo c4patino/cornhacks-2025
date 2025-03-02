@@ -35,9 +35,9 @@ export default function Game() {
 
   const PlayerList = (players: string[], header: string) => {
     return (
-      <div className="w-1/4 max-w-[300px] h-[400px] bg-gray-900 p-4 rounded-lg shadow-lg overflow-y-auto">
+      <div className="max-w-[400px] h-auto bg-gray-900 p-4 rounded-lg shadow-lg overflow-y-auto">
         <h2 className="text-lg font-bold text-white mb-2">{header}</h2>
-        <div className="flex flex-col gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
           {players.map((player, index) => (
             <button
               key={index}
@@ -54,7 +54,7 @@ export default function Game() {
 
   const VotingList = (players: string[], header: string) => {
     return (
-      <div className="w-[80%] max-w-[300px] h-[400px] bg-gray-900 p-4 rounded-lg shadow-lg overflow-y-auto">
+      <div className="max-w-[400px] h-auto bg-gray-900 p-4 rounded-lg shadow-lg overflow-y-auto">
         <h2 className="text-lg font-bold text-white mb-2">{header}</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
           {players.map((player, index) => (
@@ -91,14 +91,40 @@ export default function Game() {
   }
 
   return(
-    <div className="flex h-screen p-4 bg-gray-800">
-      <div className="w-1/2 bg-gray-900 text-white p-6 border-r border-gray-700 flex flex-col rounded-2xl overflow-y-auto">
-        <div className="flex flex-row w-[100%] justify-between">
-          <h2 className="text-xl font-bold mb-4">The Final Transmission</h2>
-          {gamestate == GameStates.CHATTING && <Timer duration={60}></Timer>}
+    <div className="flex flex-col md:flex-row h-screen p-4 bg-gray-800 overflow-hidden overflow-y-auto">
+      {/* Right side (should be on top when stacked) */}
+      <div className="w-full md:w-1/2 h-auto md:h-full bg-gray-800 flex flex-col justify-between order-1 md:order-2">
+        <div className="pl-8 pr-8 pb-8 h-auto md:h-[40%]">
+          <div className="flex-1 h-[100%] bg-gray-900 text-white p-4 rounded-2xl shadow-lg">
+            <h2 className="text-xl font-bold mb-2">{roles[0]!.display_name}</h2>
+            <p className="whitespace-pre-line">{roles[0]!.description}</p>
+          </div>
         </div>
-        <div className="h-[85%] flex-1 flex-col justify-end">
+        <div className="pl-8 pr-8 pb-8 md:pb-0 md:pt-8 h-auto md:h-[60%]">
+          <div className="flex-1 h-[100%] bg-gray-900 text-white p-4 rounded-2xl shadow-lg">
+            <h2 className="text-xl font-bold mb-2">Randomly Generated Name</h2>
+            <p className="whitespace-pre-line">{prompts[actionId]!.prompt}</p>
+            <div className="flex flex-row justify-evenly">
+              {actionId == 0 && (
+                <div className="flex flex-row justify-center p-4">
+                  <Button variant="default" onClick={() => setActionId(1)}>Continue</Button>
+                </div>
+              )}
+              {prompts[actionId]!.requires_players && PlayerList(samplePlayers, "Players")}
+              {prompts[actionId]!.requires_unused && PlayerList(['Card One', 'Card Two', 'Card Three'], "Unused Roles")}
+              {gamestate == GameStates.VOTING && VotingList(['Player One', 'Player Two', 'Player Three', 'Player Four', 'Player Five'], "Vote")}
+            </div>
+          </div>
         </div>
+      </div>
+
+      {/* Left side (should be on bottom when stacked) */}
+      <div className="w-full md:w-1/2 bg-gray-900 text-white p-6 border-r border-gray-700 flex flex-col rounded-2xl md:overflow-y-auto order-2 md:order-1">
+        <div className="flex flex-row w-full justify-between">
+          <h2 className="text-xl font-bold mb-4">The Final Transmission Chat</h2>
+          {gamestate == GameStates.CHATTING && <Timer duration={60} />}
+        </div>
+        <div className="min-h-[400px] md:h-[85%] flex-1 flex-col justify-end"></div>
         <div className="mt-4 flex">
           <input
             type="text"
@@ -107,32 +133,6 @@ export default function Game() {
           />
           <div className="px-2 py-1">
             <Button variant="default">Send</Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Right half of page */}
-      <div className="w-1/2 h-[100%] bg-gray-800 flex flex-col justify-between">
-        <div className="pl-8 pr-8 pb-8 h-[40%]">
-          <div className="flex-1 h-[100%] bg-gray-900 text-white p-4 rounded-2xl shadow-lg">
-            <h2 className="text-xl font-bold mb-2">{roles[0]!.display_name}</h2>
-            <p className="whitespace-pre-line">{roles[0]!.description}</p>
-          </div>
-        </div>
-        <div className="pl-8 pr-8 pt-8 h-[60%]">
-          <div className="flex-1 h-[100%] bg-gray-900 text-white p-4 rounded-2xl shadow-lg">
-            <h2 className="text-xl font-bold mb-2">Randomly Generated Name</h2>
-            <p className="whitespace-pre-line">{prompts[actionId]!.prompt}</p>
-            <div className="flex flex-row justify-evenly">
-              {actionId == 0 &&
-              <div className="flex flex-row justify-center p-4">
-                <Button variant="default" onClick={() => setActionId(1)}>Continue</Button>
-              </div>
-              }
-              {prompts[actionId]!.requires_players && PlayerList(samplePlayers, "Players")}
-              {prompts[actionId]!.requires_unused && PlayerList(['Card One', 'Card Two', 'Card Three'], "Unused Roles")}
-              {gamestate == GameStates.VOTING && VotingList(['Player One', 'Player Two', 'Player Three', 'Player Four', 'Player Five'], "Vote")}
-            </div>
           </div>
         </div>
       </div>

@@ -16,7 +16,7 @@ export default function StartPage() {
 
   return (
     <div className="flex flex-col items-center justify-evenly h-screen bg-gradient-to-b from-blue-800 to-blue-950">
-      <div className="text-5xl">The Final Transmission</div>
+      <div className="text-5xl text-center">The Final Transmission</div>
       <div className="flex flex-col items-center">
         <div className="flex flex-row">
           <div className="w-12 px-4"></div>
