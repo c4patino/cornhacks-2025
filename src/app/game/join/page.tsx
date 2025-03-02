@@ -15,7 +15,7 @@ export default function JoinPage() {
 
   const [playerList, setPlayerList] = useState([]);
 
-  const join = api.game.join.useMutation();
+  const gameStart = api.game.start.useMutation();
 
   const gameIdParam = searchParams.get("id");
   const gameId = gameIdParam ? Number(gameIdParam) : NaN;
@@ -36,6 +36,10 @@ export default function JoinPage() {
     },
   });
 
+  const handleStart = () => {
+    gameStart.mutate({ gameId, playerId: 21 });
+  };
+
   return (
     <div className="flex h-screen flex-col items-center bg-gradient-to-b from-blue-800 to-blue-950 text-white">
       <div className="w-[100%] p-5 text-4xl">
@@ -46,7 +50,7 @@ export default function JoinPage() {
           <div className="w-[115px]"></div>
           <h1 className="text-3xl font-bold">Room ID: 123456</h1>
           <div className="pl-5">
-            <Button variant="default" onClick={() => join.mutate()}>
+            <Button variant="default" onClick={handleStart}>
               Start Game
             </Button>
           </div>

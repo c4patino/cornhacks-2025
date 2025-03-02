@@ -1,11 +1,13 @@
 import { on } from "events";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { db } from "@/server/db";
 import { games, players } from "@/server/db/schema";
 import { ee } from "@/trpc/shared";
+import { GameStatus, PlayerRole } from "@/lib/types";
 
 export const gameRouter = createTRPCRouter({
   create: publicProcedure.mutation(async ({ input }) => {
@@ -67,4 +69,34 @@ export const gameRouter = createTRPCRouter({
 
     return { player };
   }),
+
+  start: publicProcedure
+    .input(z.object({ playerId: z.number(), gameId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const game = await ctx.db.query.games
+        .findFirst({
+          where: (game, { eq }) => eq(game.id, input.gameId),
+        })
+        .execute();
+
+      if (!game) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message:
+            "That game was not found, please check your join code and try again.",
+        });
+      }
+
+      if (game.owner !== input.playerId) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "You are not allowed to do that.",
+        });
+      }
+
+      await ctx.db
+        .update(games)
+        .set({ status: GameStatus.IN_PROGRESS })
+        .where(eq(games.id, game.id));
+    }),
 });

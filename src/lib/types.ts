@@ -38,7 +38,7 @@ export const GameStateSchema = z.object({
   state: z.string(),
 });
 
-export type GameState = z.infer<typeof GameStateSchema>;
+export type GameStateMessage = z.infer<typeof GameStateSchema>;
 
 export enum GameStatus {
   JOINING = "joining",

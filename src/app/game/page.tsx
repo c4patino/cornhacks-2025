@@ -1,12 +1,38 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { roles } from "../../lib/descriptions";
 import { prompts } from "../../lib/prompts";
-import { useState, useEffect } from "react";
-import { api } from "../../trpc/react";
 import { alterGameState, findRoleId } from "./state";
 import { GameStates } from "@/lib/types";
+
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useState, useEffect } from "react";
+import { Message } from "@/lib/types";
+import { api } from "@/trpc/react";
+
+const FormSchema = z.object({
+  text: z.string().max(200, {
+    message: "Your message must be less than 200 characters.",
+  }),
+});
+
+const SecondFormSchema = z.object({
+  text: z.string().max(200, {
+    message: "Your message must be less than 200 characters.",
+  }),
+});
 
 export default function Game() {
   const {
@@ -14,29 +40,61 @@ export default function Game() {
     isLoading,
     error,
   } = api.gamestate.getLivingPlayers.useQuery();
-  const { data: recState } = api.gamestate.getState.useQuery(1);
   const [gamestate, setGameState] = useState<GameStates | null>(null);
   const [actionId, setActionId] = useState(0);
+
+  const [messages, setMessages] = useState<Message[]>([]);
+
+  const { mutate: send } = api.chat.send.useMutation();
+  const { data: recState } = api.gamestate.getState.useQuery(1);
+  const { mutate: modifyState } = api.gamestate.advanceState.useMutation();
+
+  const form = useForm<z.infer<typeof FormSchema>>({
+    resolver: zodResolver(FormSchema),
+    defaultValues: { text: "" },
+  });
+
+  const secondForm = useForm<z.infer<typeof SecondFormSchema>>({
+    resolver: zodResolver(SecondFormSchema),
+    defaultValues: { text: "" },
+  });
+
+  function onSubmit(data: z.infer<typeof FormSchema>) {
+    send({
+      message: data.text,
+      sender: 0,
+      timestamp: new Date(),
+    });
+  }
+
+  function onSecondSubmit(data: z.infer<typeof SecondFormSchema>) {
+    console.log(data.text);
+    modifyState({ gameId: 78, state: data.text });
+  }
+
+  api.chat.get.useSubscription(undefined, {
+    onData(data) {
+      setMessages([...messages, data]);
+    },
+    onError(err) {
+      console.error(err);
+    },
+  });
+
+  api.gamestate.getGameState.useSubscription(undefined, {
+    onData(data) {
+      setGameState(data);
+    },
+    onError(err) {
+      console.error(err);
+    },
+  });
 
   useEffect(() => {
     if (recState && recState.length > 0) {
       setGameState(recState[0]!.current_phase as GameStates);
     }
   }, [recState]);
-
-  /*
-  useEffect(() => {
-    const state = api.gamestate.getState.useSubscription(undefined, {
-      onData(data: any) {
-        setGameState(data.json);
-      },
-      onError(err) {
-        console.error(err);
-      },
-    });
-  }, [api.gamestate.send]); 
-
-  */
 
   const handleRoleAction = () => {
     setActionId(12);
@@ -106,8 +164,8 @@ export default function Game() {
       <div className="order-1 flex h-auto w-full flex-col justify-between bg-gray-800 md:order-2 md:h-full md:w-1/2">
         <div className="h-auto pb-8 pl-8 pr-8 md:h-[40%]">
           <div className="h-[100%] flex-1 rounded-2xl bg-gray-900 p-4 text-white shadow-lg">
-            <h2 className="mb-2 text-xl font-bold">{roles[1]!.display_name}</h2>
-            <p className="whitespace-pre-line">{roles[1]!.description}</p>
+            <h2 className="mb-2 text-xl font-bold">{roles[0]!.display_name}</h2>
+            <p className="whitespace-pre-line">{roles[0]!.description}</p>
           </div>
         </div>
         <div className="h-auto pb-8 pl-8 pr-8 md:h-[60%] md:pb-0 md:pt-8">
@@ -117,7 +175,7 @@ export default function Game() {
             <div className="flex flex-row justify-evenly">
               {actionId == 0 && (
                 <div className="flex flex-row justify-center p-4">
-                  <Button variant="default" onClick={() => setActionId(2)}>
+                  <Button variant="default" onClick={() => setActionId(1)}>
                     Continue
                   </Button>
                 </div>
@@ -143,20 +201,58 @@ export default function Game() {
       <div className="order-2 flex w-full flex-col rounded-2xl border-r border-gray-700 bg-gray-900 p-6 text-white md:order-1 md:w-1/2 md:overflow-y-auto">
         <div className="flex w-full flex-row justify-between">
           <h2 className="mb-4 text-xl font-bold">
-            The Final Transmission Chat
+            The Final Transmission Chat: {gamestate}
           </h2>
           {gamestate == GameStates.CHATTING && <Timer duration={60} />}
         </div>
-        <div className="min-h-[400px] flex-1 flex-col justify-end md:h-[85%]"></div>
+        <div className="h-[85%] flex-1 flex-col justify-end">
+          {messages.map((message) => (
+            <p>{message.message}</p>
+          ))}
+        </div>
         <div className="mt-4 flex">
-          <input
-            type="text"
-            placeholder="Type a message..."
-            className="flex-1 rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <div className="px-2 py-1">
-            <Button variant="default">Send</Button>
-          </div>
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="flex w-full"
+            >
+              <FormField
+                control={form.control}
+                name="text"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormControl>
+                      <Input placeholder="Type a message" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit">Send</Button>
+            </form>
+          </Form>
+        </div>
+        <div className="mt-4 flex">
+          <Form {...secondForm}>
+            <form
+              onSubmit={secondForm.handleSubmit(onSecondSubmit)}
+              className="flex w-full"
+            >
+              <FormField
+                control={secondForm.control}
+                name="text"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormControl>
+                      <Input placeholder="Game state" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit">Switch</Button>
+            </form>
+          </Form>
         </div>
       </div>
     </div>
