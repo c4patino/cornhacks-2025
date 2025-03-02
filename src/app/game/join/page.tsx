@@ -47,8 +47,8 @@ export default function JoinPage() {
   const handleStart = () => {
     if (!gameData?.id || !playerData?.id) return;
 
-    gameStart.mutate({ gameId: gameData.id, playerId: playerData.id! });
-    router.push("/game")
+    gameStart.mutate({ gameId: gameData.id, playerId: playerData.id });
+    router.push("/game");
   };
 
   return (

@@ -2,7 +2,7 @@ import { on } from "events";
 
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { ee } from "@/trpc/shared";
-import { Message, MessageSchema } from "@/lib/types";
+import { type Message, MessageSchema } from "@/lib/types";
 
 export const chatRouter = createTRPCRouter({
   send: publicProcedure.input(MessageSchema).mutation(({ input }) => {

@@ -28,10 +28,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
-import { Message } from "@/lib/types";
 import { api } from "@/trpc/react";
 import { useGlobalState } from "@/app/_components/context";
-import { PlayerRole } from "@/lib/types";
+import { type PlayerRole, type Message } from "@/lib/types";
 import { type TPlayer } from "@/server/db/schema";
 
 const FormSchema = z.object({
@@ -41,11 +40,7 @@ const FormSchema = z.object({
 });
 
 export default function Game() {
-  const {
-    data: livingPlayers,
-    isLoading,
-    error,
-  } = api.gamestate.getLivingPlayers.useQuery();
+  const { data: livingPlayers } = api.gamestate.getLivingPlayers.useQuery();
 
   const { gameData, playerData } = useGlobalState();
 
