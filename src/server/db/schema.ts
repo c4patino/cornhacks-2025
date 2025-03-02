@@ -7,6 +7,8 @@ import {
   varchar,
   boolean,
   foreignKey,
+  AnyPgColumn,
+  ColumnsWithTable,
 } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import { createSelectSchema, createInsertSchema } from "drizzle-zod";
@@ -42,9 +44,10 @@ export const games = createTable(
     endTime: timestamp("end_time", { withTimezone: true }),
   },
   (table) => ({
-    foreignKeys: [
-      foreignKey({ columns: [table.owner], foreignColumns: [players.id] }),
-    ],
+    ownerForeignKey: foreignKey({
+      columns: [table.owner],
+      foreignColumns: [players.id],
+    }),
   }),
 );
 
@@ -64,11 +67,21 @@ export const players = createTable(
     isAi: boolean("is_ai").notNull().default(false),
     lastAction: timestamp("last_action", { withTimezone: true }),
   },
-  (table) => ({
-    foreignKeys: [
-      foreignKey({ columns: [table.gameId], foreignColumns: [games.id] }),
-    ],
-  }),
+  //() => ({
+  //  gamePlayerForeignKey: foreignKey(playersFKConstraint),
+  //}),
 );
+
+//const playersFKConstraint: {
+//  columns: [AnyPgColumn<{ tableName: "players" }>];
+//  foreignColumns: ColumnsWithTable<
+//    "game",
+//    "players",
+//    [AnyPgColumn<{ tableName: "game" }>]
+//  >;
+//} = {
+//  columns: [players.gameId],
+//  foreignColumns: [games.id],
+//};
 
 export type TPlayer = typeof players.$inferSelect;

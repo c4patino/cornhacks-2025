@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import { GameContext, PlayerContext } from "@/app/_components/context";
-import type { TPlayer, TGame } from "@/server/db/schema";
+import { type TGame, type TPlayer } from "@/server/db/schema";
 
 export default function GlobalStateProvider({
   children,
