@@ -1,15 +1,37 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+
+import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/react";
 
-export default function StartPage() {
-  const game = api.game.create.useMutation();
+const FormSchema = z.object({
+  id: z.string().min(6, { message: "Not a valid game room id." }),
+});
 
-  const makeLobby = async () => {
-    await game.mutateAsync();
-  };
+export default function StartPage() {
+  const router = useRouter();
+  const gameMutator = api.game.create.useMutation();
+  const playerMutator = api.game.join.useMutation();
+
+  const form = useForm<z.infer<typeof FormSchema>>({
+    resolver: zodResolver(FormSchema),
+    defaultValues: { id: "" },
+  });
+
+  async function handleGameCreate() {
+    const { game, player } = await gameMutator.mutateAsync();
+    router.push(`/game/join?id=${game.id}`);
+  }
+
+  async function handleGameJoin() {
+    const { game, player } = await playerMutator.mutateAsync();
+    router.push(`/game/join?id=${game.id}`);
+  }
 
   return (
     <div className="flex h-screen flex-col items-center justify-evenly bg-gradient-to-b from-blue-800 to-blue-950">
@@ -30,7 +52,7 @@ export default function StartPage() {
         </div>
         <div className="pt-6">
           <div className="ml-2 px-4 py-2">
-            <Button variant="default" onClick={makeLobby}>
+            <Button variant="default" onClick={handleGameCreate}>
               Start a room
             </Button>
           </div>
