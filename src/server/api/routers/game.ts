@@ -57,7 +57,14 @@ export const gameRouter = createTRPCRouter({
     }
   }),
 
-  join: publicProcedure.mutation(async ({ input }) => {
+  join: publicProcedure.input(z.number()).mutation(async ({ input }) => {
+    const [player] = await db
+      .insert(players)
+      .values({ gameId: input })
+      .returning({ id: players.id });
+
     ee.emit("join");
+
+    return { player };
   }),
 });
